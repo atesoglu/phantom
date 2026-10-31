@@ -1,9 +1,10 @@
 use anyhow::Result;
-use phantom_common::{Request, Response, socket_path};
+use phantom_common::{ReplayStep, Request, Response, socket_path};
 use phantom_core::MacroStore;
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixListener;
+use tokio::time::Duration;
 
 pub async fn run() -> Result<()> {
     let store = Arc::new(MacroStore::new(None));
@@ -61,5 +62,47 @@ async fn handle(req: Request, store: &MacroStore) -> Response {
             let count = store.load_all().map(|v| v.len()).unwrap_or(0);
             Response::Status { running: true, macros: count }
         }
+        Request::DebugReplay { steps } => {
+            if let Err(e) = replay_steps(&steps).await {
+                Response::Error { message: e.to_string() }
+            } else { Response::Ok }
+        }
     }
+}
+
+#[cfg(target_os = "linux")]
+async fn replay_steps(steps: &[ReplayStep]) -> Result<()> {
+    use evdev::{Device, InputEvent, KeyCode, RelativeAxisType, RelativeAxisCode};
+    // Build virtual device
+    let mut device = Device::builder()
+        .name("phantom-debug")
+        .with_rel_axes(&[RelativeAxisType::REL_X, RelativeAxisType::REL_Y])?
+        .with_keys(&[KeyCode::BTN_LEFT])?
+        .build()?;
+    for s in steps {
+        if s.dx != 0 || s.dy != 0 {
+            device.emit(&[
+                InputEvent::new(evdev::EventType::RELATIVE, RelativeAxisType::REL_X.0, s.dx),
+                InputEvent::new(evdev::EventType::RELATIVE, RelativeAxisType::REL_Y.0, s.dy),
+                InputEvent::new(evdev::EventType::SYNCHRONIZATION, 0, 0),
+            ])?;
+        }
+        if s.click {
+            device.emit(&[
+                InputEvent::new(evdev::EventType::KEY, KeyCode::BTN_LEFT.0, 1),
+                InputEvent::new(evdev::EventType::SYNCHRONIZATION, 0, 0),
+            ])?;
+            device.emit(&[
+                InputEvent::new(evdev::EventType::KEY, KeyCode::BTN_LEFT.0, 0),
+                InputEvent::new(evdev::EventType::SYNCHRONIZATION, 0, 0),
+            ])?;
+        }
+        tokio::time::sleep(Duration::from_millis(8)).await;
+    }
+    Ok(())
+}
+
+#[cfg(not(target_os = "linux"))]
+async fn replay_steps(_steps: &[ReplayStep]) -> Result<()> {
+    anyhow::bail!("not supported on this platform")
 }

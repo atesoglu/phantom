@@ -5,6 +5,13 @@ pub const CONFIG_DIR: &str = "tinymacro";
 pub const SHARE_DIR: &str = "tinymacro";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplayStep {
+    pub dx: i32,
+    pub dy: i32,
+    pub click: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Macro {
     pub id: String,
     pub name: String,
@@ -37,6 +44,7 @@ pub enum Request {
     AddMacro { macro_def: Macro },
     RemoveMacro { id: String },
     DaemonStatus,
+    DebugReplay { steps: Vec<ReplayStep> },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
