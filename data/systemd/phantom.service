@@ -1,0 +1,11 @@
+[Unit]
+Description=Phantom automation daemon
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.cargo/bin/phantom-daemon
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

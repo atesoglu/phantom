@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Phantom
+Comment=Minimal macro/automation app
+Exec=phantom-ui
+Type=Application
+Categories=Utility;
+Icon=phantom

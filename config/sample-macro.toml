@@ -1,0 +1,11 @@
+id = "hello-world"
+name = "Hello World"
+enabled = true
+
+[trigger]
+type = "hotkey"
+keys = "ctrl+shift+h"
+
+[[actions]]
+type = "keystroke"
+text = "Hello from Phantom!"

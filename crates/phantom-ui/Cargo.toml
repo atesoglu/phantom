@@ -1,0 +1,15 @@
+[package]
+name = "phantom-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+phantom-common = { path = "../phantom-common" }
+phantom-core = { path = "../phantom-core" }
+gtk4 = { workspace = true }
+libadwaita = { workspace = true }
+glib = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+serde_json = { workspace = true }
