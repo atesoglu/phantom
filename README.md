@@ -1,6 +1,6 @@
 # Phantom
 
-Minimal desktop macro/automation app. Fedora 44 / Wayland first.
+Minimal desktop macro/automation app. Fedora 44 / Wayland first. Single-process app: automation runs while the app is open.
 
 ## Build (Fedora 44)
 
@@ -22,13 +22,6 @@ cargo build --workspace
 cargo test --workspace
 ```
 
-Run daemon:
-```
-./target/debug/phantom-daemon
-# or via systemd user:
-systemctl --user enable --now phantom.service
-```
-
 Run UI:
 ```
 ./target/debug/phantom-ui
@@ -36,9 +29,7 @@ Run UI:
 
 ## Storage
 - Config: ~/.config/tinymacro/*.toml
-- Runtime socket: $XDG_RUNTIME_DIR/phantom.sock
 
-## Tests
-```
-cargo test --workspace
-```
+## Notes
+- /dev/uinput access may require `input` group membership.
+- No background daemon/service in this version.

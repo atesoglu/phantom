@@ -1,15 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const SOCKET_NAME: &str = "phantom.sock";
 pub const CONFIG_DIR: &str = "tinymacro";
-pub const SHARE_DIR: &str = "tinymacro";
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReplayStep {
-    pub dx: i32,
-    pub dy: i32,
-    pub click: bool,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Macro {
@@ -37,28 +28,10 @@ pub enum Action {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
-pub enum Request {
-    ListMacros,
-    ToggleMacro { id: String, enabled: bool },
-    AddMacro { macro_def: Macro },
-    RemoveMacro { id: String },
-    DaemonStatus,
-    DebugReplay { steps: Vec<ReplayStep> },
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
-pub enum Response {
-    Macros { items: Vec<Macro> },
-    Ok,
-    Status { running: bool, macros: usize },
-    Error { message: String },
-}
-
-pub fn socket_path() -> std::path::PathBuf {
-    let base = std::env::var("XDG_RUNTIME_DIR").unwrap_or_else(|_| "/tmp".into());
-    std::path::PathBuf::from(base).join(SOCKET_NAME)
+pub struct ReplayStep {
+    pub dx: i32,
+    pub dy: i32,
+    pub click: bool,
 }
 
 pub fn config_dir() -> std::path::PathBuf {
