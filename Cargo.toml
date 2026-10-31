@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/phantom-common",
     "crates/phantom-core",
+    "crates/phantom-input",
     "crates/phantom-ui",
 ]
 
