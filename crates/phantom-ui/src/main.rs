@@ -91,9 +91,10 @@ fn main() {
             let status = status.clone();
             btn_replay.connect_clicked(move |_| {
                 let to_replay = steps.borrow().clone();
+                status.set_text(&format!("replaying {} steps", to_replay.len()));
                 let res = replay_steps(&to_replay);
                 match res {
-                    Ok(_) => status.set_text("replayed"),
+                    Ok(_) => status.set_text(&format!("replayed {} steps", to_replay.len())),
                     Err(e) => status.set_text(&format!("error: {}", e)),
                 }
             });
@@ -113,31 +114,36 @@ fn main() {
 
 #[cfg(target_os = "linux")]
 fn replay_steps(steps: &[ReplayStep]) -> anyhow::Result<()> {
-    use evdev::{Device, InputEvent, KeyCode, RelativeAxisType};
-    let mut device = Device::builder()
+    use evdev::{uinput::VirtualDeviceBuilder, AttributeSet, EventType, InputEvent, Key, RelativeAxisType};
+    let mut rels = AttributeSet::<RelativeAxisType>::new();
+    rels.insert(RelativeAxisType::REL_X);
+    rels.insert(RelativeAxisType::REL_Y);
+    let mut keys = AttributeSet::<Key>::new();
+    keys.insert(Key::BTN_LEFT);
+    let mut device = VirtualDeviceBuilder::new()?
         .name("phantom-debug")
-        .with_rel_axes(&[RelativeAxisType::REL_X, RelativeAxisType::REL_Y])?
-        .with_keys(&[KeyCode::BTN_LEFT])?
+        .with_relative_axes(&rels)?
+        .with_keys(&keys)?
         .build()?;
     for s in steps {
         if s.dx != 0 || s.dy != 0 {
             device.emit(&[
-                InputEvent::new(evdev::EventType::RELATIVE, RelativeAxisType::REL_X.0, s.dx),
-                InputEvent::new(evdev::EventType::RELATIVE, RelativeAxisType::REL_Y.0, s.dy),
-                InputEvent::new(evdev::EventType::SYNCHRONIZATION, 0, 0),
+                InputEvent::new(EventType::RELATIVE, RelativeAxisType::REL_X.0, s.dx),
+                InputEvent::new(EventType::RELATIVE, RelativeAxisType::REL_Y.0, s.dy),
+                InputEvent::new(EventType::SYNCHRONIZATION, 0, 0),
             ])?;
         }
         if s.click {
             device.emit(&[
-                InputEvent::new(evdev::EventType::KEY, KeyCode::BTN_LEFT.0, 1),
-                InputEvent::new(evdev::EventType::SYNCHRONIZATION, 0, 0),
+                InputEvent::new(EventType::KEY, Key::BTN_LEFT.code(), 1),
+                InputEvent::new(EventType::SYNCHRONIZATION, 0, 0),
             ])?;
             device.emit(&[
-                InputEvent::new(evdev::EventType::KEY, KeyCode::BTN_LEFT.0, 0),
-                InputEvent::new(evdev::EventType::SYNCHRONIZATION, 0, 0),
+                InputEvent::new(EventType::KEY, Key::BTN_LEFT.code(), 0),
+                InputEvent::new(EventType::SYNCHRONIZATION, 0, 0),
             ])?;
         }
-        std::thread::sleep(std::time::Duration::from_millis(8));
+        std::thread::sleep(std::time::Duration::from_millis(16));
     }
     Ok(())
 }
