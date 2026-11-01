@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const CONFIG_DIR: &str = "tinymacro";
+pub const CONFIG_DIR: &str = "macros";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Macro {

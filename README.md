@@ -28,7 +28,7 @@ Run UI:
 ```
 
 ## Storage
-- Config: ~/.config/tinymacro/*.toml
+- Config: ~/.config/macros/*.toml
 
 ## Notes
 - /dev/uinput access may require `input` group membership.
